@@ -3,7 +3,8 @@ use ethers::{
     signers,
 };
 use eyre::Result;
-use std::str::FromStr;
+use serde_json;
+use std::{fs::File, str::FromStr};
 
 #[tokio::main]
 async fn main() -> Result<()> {
@@ -28,6 +29,12 @@ async fn main() -> Result<()> {
         to_wei(eth_balance, 18),
         nonce
     );
+
+    // Get ABIs data
+    let path = "./abis/router-abi.json";
+    let file = File::open(path)?;
+    let abi_data = serde_json::from_reader(file)?;
+    println!("{:?}", abi_data);
 
     Ok(())
 }
