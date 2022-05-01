@@ -72,8 +72,7 @@ async fn main() -> Result<()> {
         .to(Address::from_str(
             "0x8076c74c5e3f5852037f31ff0093eeb8c8add8d3",
         )?)
-        .value(10000)
-        .into();
+        .value(10000);
     let receipt = client.send_transaction(tx, None).await?;
     println!("{:?}", receipt);
 
