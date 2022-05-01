@@ -71,14 +71,11 @@ fn create_contract(
     let contract_provider = Provider::try_from(NODE).expect("Wrong Node");
 
     let contract_address = Address::from_str(contract_address).expect("Not Address");
-    let abi = contract_abi(abi_path);
 
-    Contract::new(contract_address, abi, contract_provider)
-}
+    let file = File::open(abi_path).expect("No JSON file");
+    let contract_abi: Abi = serde_json::from_reader(file).expect("Wrong JSON format");
 
-fn contract_abi(path: &str) -> Abi {
-    let file = File::open(path).expect("No JSON file");
-    serde_json::from_reader(file).expect("Wrong JSON format")
+    Contract::new(contract_address, contract_abi, contract_provider)
 }
 
 fn from_wei(amount: U256, decimals: u8) -> f64 {
