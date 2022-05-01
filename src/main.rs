@@ -17,7 +17,7 @@ async fn main() -> Result<()> {
         .get_transaction_count(account.address(), Some(BlockNumber::Latest.into()))
         .await?;
 
-    // Query ETH balance
+    // Query account information
     let eth_balance_wei = provider.get_balance(account.address(), None).await?;
     let eth_balance = from_wei(eth_balance_wei, 18);
     println!(
