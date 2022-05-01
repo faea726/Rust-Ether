@@ -1,15 +1,19 @@
 use ethers::{
-    prelude::{BlockNumber, Middleware, Provider, Signer, U256},
+    abi::{Abi, Address},
+    contract::Contract,
+    prelude::{BlockNumber, Middleware, Multicall, Provider, Signer, U256},
     signers,
 };
 use eyre::Result;
 use serde_json;
 use std::{fs::File, str::FromStr};
 
+#[allow(unused_variables)]
 #[tokio::main]
 async fn main() -> Result<()> {
     // Connect to Blockchain
-    let provider = Provider::try_from("https://data-seed-prebsc-1-s1.binance.org:8545/")?;
+    let provider = Provider::try_from("https://bscrpc.com")?;
+    // let provider = Provider::try_from("https://data-seed-prebsc-1-s1.binance.org:8545/")?;
 
     // Create account based on private key
     let private_key = "039d17fedb3da5634bc09a7242c8be5d25f74eb3bdd7287ef8dc9e7e5defc0ec";
@@ -30,11 +34,18 @@ async fn main() -> Result<()> {
         nonce
     );
 
-    // Get ABIs data
-    let path = "./abis/router-abi.json";
+    // Get ABI data and create Contract
+    let contract_address = Address::from_str("0xD99D1c33F9fC3444f8101754aBC46c52416550D1")?;
+    let path = "./abis/ERC20-abi.json";
     let file = File::open(path)?;
-    let abi_data = serde_json::from_reader(file)?;
-    println!("{:?}", abi_data);
+    let contract_abi: Abi = serde_json::from_reader(file)?;
+    let contract = Contract::new(contract_address, contract_abi, &provider);
+
+    // Call
+    let call = contract.method::<_, String>("totlSupply", ())?;
+    let mut multicall = Multicall::new(&provider, None).await?;
+    multicall.add_call(call);
+    let result = multicall.call().await?;
 
     Ok(())
 }
