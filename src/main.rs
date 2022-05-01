@@ -1,7 +1,7 @@
 use ethers::{
     abi::{Abi, Address},
     contract::Contract,
-    prelude::{BlockNumber, Middleware, Multicall, Provider, Signer, U256},
+    prelude::{BlockNumber, Middleware, Provider, Signer, U256},
     signers,
 };
 use eyre::Result;
@@ -34,20 +34,30 @@ async fn main() -> Result<()> {
         nonce
     );
 
-    // Get ABI data and create Contract
-    let contract_address = Address::from_str("0xD99D1c33F9fC3444f8101754aBC46c52416550D1")?;
-    let path = "./abis/ERC20-abi.json";
-    let file = File::open(path)?;
-    let contract_abi: Abi = serde_json::from_reader(file)?;
-    let contract = Contract::new(contract_address, contract_abi, &provider);
-
     // Call
-    let call = contract.method::<_, String>("totlSupply", ())?;
-    let mut multicall = Multicall::new(&provider, None).await?;
-    multicall.add_call(call);
-    let result = multicall.call().await?;
+    let token_symbol = contract_()
+        .method::<_, String>("symbol", ())?
+        .call()
+        .await?;
+
+    let total_supply = contract_()
+        .method::<_, U256>("totalSupply", ())?
+        .call()
+        .await?;
+    println!("{}: {}", token_symbol, total_supply);
 
     Ok(())
+}
+
+fn contract_() -> Contract<Provider<ethers::prelude::Http>> {
+    let contract_provider = Provider::try_from("https://bscrpc.com").expect("msg");
+    let contract_address =
+        Address::from_str("0x8076c74c5e3f5852037f31ff0093eeb8c8add8d3").expect("msg");
+    let path = "./abis/ERC20-abi.json";
+    let file = File::open(path).expect("msg");
+    let contract_abi: Abi = serde_json::from_reader(file).expect("msg");
+
+    Contract::new(contract_address, contract_abi, contract_provider)
 }
 
 fn from_wei(amount: U256, decimals: u8) -> f64 {
