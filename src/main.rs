@@ -1,9 +1,9 @@
 use ethers::{
-    abi::{Abi, Address},
+    abi::Abi,
     contract::Contract,
     prelude::{
-        k256::ecdsa::SigningKey, BlockNumber, Middleware, Provider, Signer, SignerMiddleware,
-        Wallet, U256,
+        k256::ecdsa::SigningKey, Address, BlockNumber, Middleware, Provider, Signer,
+        SignerMiddleware, TransactionRequest, Wallet, U256,
     },
     signers,
 };
@@ -39,13 +39,13 @@ async fn main() -> Result<()> {
     );
 
     // Create Provider with Sign ability
-    let provider = SignerMiddleware::new(provider, account);
+    let client = SignerMiddleware::new(provider, account);
 
     // Call
     let token_contract = create_contract(
         "0x8076c74c5e3f5852037f31ff0093eeb8c8add8d3",
         "./abis/ERC20-abi.json",
-        provider,
+        client.clone(),
     );
 
     let token_decimals = token_contract
@@ -68,15 +68,14 @@ async fn main() -> Result<()> {
         from_wei(total_supply, token_decimals)
     );
 
-    let transfer = token_contract.method::<_, bool>(
-        "transfer",
-        (
-            "0x8076c74c5e3f5852037f31ff0093eeb8c8add8d3".to_owned(),
-            1000,
-        ),
-    )?;
-    let result = transfer.send().await?;
-    println!("{}", result.tx_hash());
+    let tx: TransactionRequest = TransactionRequest::new()
+        .to(Address::from_str(
+            "0x8076c74c5e3f5852037f31ff0093eeb8c8add8d3",
+        )?)
+        .value(10000)
+        .into();
+    let receipt = client.send_transaction(tx, None).await?;
+    println!("{:?}", receipt);
 
     Ok(())
 }
