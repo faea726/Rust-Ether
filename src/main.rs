@@ -35,27 +35,35 @@ async fn main() -> Result<()> {
     );
 
     // Call
-    let token_symbol = contract_()
+    let token_decimals = token_contract()
+        .method::<_, u8>("decimals", ())?
+        .call()
+        .await?;
+    let token_symbol = token_contract()
         .method::<_, String>("symbol", ())?
         .call()
         .await?;
-
-    let total_supply = contract_()
+    let total_supply = token_contract()
         .method::<_, U256>("totalSupply", ())?
         .call()
         .await?;
-    println!("{}: {}", token_symbol, total_supply);
+
+    println!(
+        "{}({}): {}",
+        token_symbol,
+        token_decimals,
+        from_wei(total_supply, token_decimals)
+    );
 
     Ok(())
 }
 
-fn contract_() -> Contract<Provider<ethers::prelude::Http>> {
-    let contract_provider = Provider::try_from("https://bscrpc.com").expect("msg");
+fn token_contract() -> Contract<Provider<ethers::prelude::Http>> {
+    let contract_provider = Provider::try_from("https://bscrpc.com").expect("Wrong Node");
     let contract_address =
-        Address::from_str("0x8076c74c5e3f5852037f31ff0093eeb8c8add8d3").expect("msg");
-    let path = "./abis/ERC20-abi.json";
-    let file = File::open(path).expect("msg");
-    let contract_abi: Abi = serde_json::from_reader(file).expect("msg");
+        Address::from_str("0x8076c74c5e3f5852037f31ff0093eeb8c8add8d3").expect("Not Address");
+    let file = File::open("./abis/ERC20-abi.json").expect("msg");
+    let contract_abi: Abi = serde_json::from_reader(file).expect("No JSON file");
 
     Contract::new(contract_address, contract_abi, contract_provider)
 }
