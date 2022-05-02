@@ -5,7 +5,6 @@ use ethers::{
         k256::ecdsa::SigningKey, Address, BlockNumber, Middleware, Provider, Signer,
         SignerMiddleware, Wallet, U256,
     },
-    signers,
 };
 use eyre::Result;
 use serde_json;
@@ -21,7 +20,7 @@ async fn main() -> Result<()> {
     let provider = create_provider(NODE);
 
     // Create account based on private key
-    let account = signers::Wallet::from_str(PRIVATE_KEY)?;
+    let account: Wallet<SigningKey> = PRIVATE_KEY.parse()?;
     let nonce = provider
         .get_transaction_count(account.address(), Some(BlockNumber::Latest.into()))
         .await?;
