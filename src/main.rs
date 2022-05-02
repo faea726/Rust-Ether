@@ -75,7 +75,7 @@ async fn main() -> Result<()> {
         .gas(to_wei(0.005_f64, 18_u8))
         .gas_price(to_wei(0.00005_f64, 18_u8));
 
-    println!("{:?}", transfer.tx);
+    println!("Tx data:\n{}", serde_json::to_string(&transfer.tx)?);
 
     let receipt = transfer.send().await?.await?.unwrap();
     println!("Tx Hash: {}", receipt.transaction_hash);
