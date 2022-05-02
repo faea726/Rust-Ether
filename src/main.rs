@@ -67,25 +67,26 @@ async fn main() -> Result<()> {
         from_wei(total_supply, token_decimals)
     );
 
-    let transfer = token_contract
-        .method::<_, bool>(
-            "transfer",
-            (
-                Token::Address(Address::from_str(
-                    "0x8076c74c5e3f5852037f31ff0093eeb8c8add8d3",
-                )?),
-                Token::Uint(U256::from_dec_str(
-                    &(to_wei(100_f64, token_decimals).to_string()),
-                )?),
-            )
-                .to_owned(),
-        )?
-        .send()
-        .await?
-        .await?
-        .unwrap();
+    let mut transfer = token_contract.method::<_, bool>(
+        "transfer",
+        (
+            Token::Address(Address::from_str(
+                "0x8076c74c5e3f5852037f31ff0093eeb8c8add8d3",
+            )?),
+            Token::Uint(U256::from_dec_str(
+                &(to_wei(100_f64, token_decimals).to_string()),
+            )?),
+        )
+            .to_owned(),
+    )?;
+    transfer.tx.set_from(client.address());
+    transfer.tx.set_nonce(nonce + 1);
+    transfer.tx.set_gas(U256::from_dec_str("500000")?);
+    transfer.tx.set_gas_price(U256::from_dec_str("120")?);
+    println!("{:?}", transfer.tx);
 
-    println!("Tx Hash: {}", transfer.transaction_hash);
+    let receipt = transfer.send().await?.await?.unwrap();
+    println!("Tx Hash: {}", receipt.transaction_hash);
 
     Ok(())
 }
