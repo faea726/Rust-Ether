@@ -1,9 +1,9 @@
 use ethers::{
-    abi::Abi,
+    abi::{Abi, Token},
     contract::Contract,
     prelude::{
         k256::ecdsa::SigningKey, Address, BlockNumber, Middleware, Provider, Signer,
-        SignerMiddleware, TransactionRequest, Wallet, U256,
+        SignerMiddleware, Wallet, U256,
     },
     signers,
 };
@@ -30,11 +30,10 @@ async fn main() -> Result<()> {
     let eth_balance_wei = provider.get_balance(account.address(), None).await?;
     let eth_balance = from_wei(eth_balance_wei, 18);
     println!(
-        "Address: {}\nBalance Wei: {}\nFrom Wei: {}\nTo Wei: {}\nNonce: {}",
+        "Address: {}\nBalance Wei: {}\nFrom Wei: {}\nNonce: {}",
         account.address(),
         eth_balance_wei,
         eth_balance,
-        to_wei(eth_balance, 18),
         nonce
     );
 
@@ -68,13 +67,25 @@ async fn main() -> Result<()> {
         from_wei(total_supply, token_decimals)
     );
 
-    let tx: TransactionRequest = TransactionRequest::new()
-        .to(Address::from_str(
-            "0x8076c74c5e3f5852037f31ff0093eeb8c8add8d3",
-        )?)
-        .value(10000);
-    let receipt = client.send_transaction(tx, None).await?;
-    println!("{:?}", receipt);
+    let transfer = token_contract
+        .method::<_, bool>(
+            "transfer",
+            (
+                Token::Address(Address::from_str(
+                    "0x8076c74c5e3f5852037f31ff0093eeb8c8add8d3",
+                )?),
+                Token::Uint(U256::from_dec_str(
+                    &(to_wei(100_f64, token_decimals).to_string()),
+                )?),
+            )
+                .to_owned(),
+        )?
+        .send()
+        .await?
+        .await?
+        .unwrap();
+
+    println!("Tx Hash: {}", transfer.transaction_hash);
 
     Ok(())
 }
