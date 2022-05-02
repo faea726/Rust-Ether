@@ -2,8 +2,8 @@ use ethers::{
     abi::{Abi, Token},
     contract::Contract,
     prelude::{
-        k256::ecdsa::SigningKey, Address, BlockNumber, Middleware, Provider, Signer,
-        SignerMiddleware, Wallet, U256,
+        k256::ecdsa::SigningKey, Address, BlockNumber, Middleware, Provider, SignerMiddleware,
+        Wallet, U256,
     },
 };
 use eyre::Result;
@@ -16,28 +16,23 @@ static PRIVATE_KEY: &str = "039d17fedb3da5634bc09a7242c8be5d25f74eb3bdd7287ef8dc
 
 #[tokio::main]
 async fn main() -> Result<()> {
-    // Connect to Blockchain
     let provider = create_provider(NODE);
-
-    // Create account based on private key
     let account: Wallet<SigningKey> = PRIVATE_KEY.parse()?;
-    let nonce = provider
-        .get_transaction_count(account.address(), Some(BlockNumber::Latest.into()))
-        .await?;
+    let client = SignerMiddleware::new(provider, account);
 
     // Query account information
-    let eth_balance_wei = provider.get_balance(account.address(), None).await?;
+    let nonce = client
+        .get_transaction_count(client.address(), Some(BlockNumber::Latest.into()))
+        .await?;
+    let eth_balance_wei = client.get_balance(client.address(), None).await?;
     let eth_balance = from_wei(eth_balance_wei, 18);
     println!(
         "Address: {}\nBalance Wei: {}\nFrom Wei: {}\nNonce: {}",
-        account.address(),
+        client.address(),
         eth_balance_wei,
         eth_balance,
         nonce
     );
-
-    // Create Provider with Sign ability
-    let client = SignerMiddleware::new(provider, account);
 
     // Call
     let token_contract = create_contract(
@@ -66,22 +61,19 @@ async fn main() -> Result<()> {
         from_wei(total_supply, token_decimals)
     );
 
+    // Transfer
     let transfer = token_contract
         .method::<_, bool>(
             "transfer",
             (
-                Token::Address(Address::from_str(
-                    "0x8076c74c5e3f5852037f31ff0093eeb8c8add8d3",
-                )?),
-                Token::Uint(U256::from_dec_str(
-                    &(to_wei(100_f64, token_decimals).to_string()),
-                )?),
+                Token::Address(token_contract.address()),
+                Token::Uint(to_wei(100_f64, token_decimals)),
             )
                 .to_owned(),
         )?
         .from(client.address())
-        .gas(U256::from_dec_str("500000")?)
-        .gas_price(U256::from_dec_str("120")?);
+        .gas(to_wei(0.005_f64, 18_u8))
+        .gas_price(to_wei(0.00005_f64, 18_u8));
 
     println!("{:?}", transfer.tx);
 
