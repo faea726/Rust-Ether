@@ -79,8 +79,6 @@ async fn main() -> Result<()> {
         )
             .to_owned(),
     )?;
-    transfer.tx.set_from(client.address());
-    transfer.tx.set_nonce(nonce + 1);
     transfer.tx.set_gas(U256::from_dec_str("500000")?);
     transfer.tx.set_gas_price(U256::from_dec_str("120")?);
     println!("{:?}", transfer.tx);
