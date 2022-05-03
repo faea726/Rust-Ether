@@ -2,25 +2,31 @@ use ethers::{
     abi::{Abi, Token},
     contract::Contract,
     prelude::{
-        k256::ecdsa::SigningKey, Address, BlockNumber, Middleware, Provider, SignerMiddleware,
-        Wallet, U256,
+        k256::ecdsa::SigningKey, Address, BlockNumber, Middleware, Provider, Signer,
+        SignerMiddleware, Wallet, U256,
     },
 };
 use eyre::Result;
 use serde_json;
 use std::{fs::File, str::FromStr};
 
-static NODE: &str = "https://bscrpc.com"; // Main net
+static NODE: &str = "https://bscrpc.com"; // Main net: ChainID: 56_u64
+static CHAIN_ID: u64 = 56;
+// static NODE: &str = "https://data-seed-prebsc-1-s1.binance.org:8545/"; // Test net: ChainID: 97_u64
+// static CHAIN_ID: u64 = 97;
+
 static PRIVATE_KEY: &str = "039d17fedb3da5634bc09a7242c8be5d25f74eb3bdd7287ef8dc9e7e5defc0ec";
-// static NODE: &str = "https://data-seed-prebsc-1-s1.binance.org:8545/"; // Test net
 
 #[tokio::main]
 async fn main() -> Result<()> {
     let provider = create_provider(NODE);
-    let account: Wallet<SigningKey> = PRIVATE_KEY.parse()?;
-    let client = SignerMiddleware::new(provider, account);
 
-    // Query account information
+    let wallet: Wallet<SigningKey> = PRIVATE_KEY.parse()?;
+    let wallet = wallet.with_chain_id(CHAIN_ID);
+
+    let client = SignerMiddleware::new(provider, wallet);
+
+    // Query wallet information
     let nonce = client
         .get_transaction_count(client.address(), Some(BlockNumber::Latest.into()))
         .await?;
@@ -71,9 +77,9 @@ async fn main() -> Result<()> {
             )
                 .to_owned(),
         )?
-        .from(client.address())
-        .gas(to_wei(0.005_f64, 18_u8))
-        .gas_price(to_wei(0.00005_f64, 18_u8));
+        .gas(to_wei(50000_f64, 0_u8))
+        .gas_price(client.get_gas_price().await?)
+        .legacy();
 
     println!("Tx data:\n{}", serde_json::to_string(&transfer.tx)?);
 
