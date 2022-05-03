@@ -77,11 +77,9 @@ async fn main() -> Result<()> {
             )
                 .to_owned(),
         )?
-        .gas(to_wei(50000_f64, 0_u8))
-        .gas_price(client.get_gas_price().await?)
+        .gas(to_wei(300000.0, 0))
+        .gas_price(to_wei(15.0, 9))
         .legacy();
-
-    println!("Tx data:\n{}", serde_json::to_string(&transfer.tx)?);
 
     let receipt = transfer.send().await?.await?.unwrap();
     println!("Tx Hash: {}", receipt.transaction_hash);
