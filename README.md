@@ -1,6 +1,10 @@
-# Foobar
+# Rust Ethers
 
-Rust-Ether is my learning curve in Rust and Blockchain.
+Rust-Ether is a simple rust program, to query and send transaction to EWM contracts.
+
+## Installation
+
+Install [Rust-lang](https://www.rust-lang.org/tools/install).
 
 ## Usage
 
