@@ -8,11 +8,7 @@ use ethers::{
 };
 use eyre::Result;
 use serde_json;
-use std::{
-    fs::File,
-    io::{self, prelude::*},
-    str::FromStr,
-};
+use std::{fs::File, str::FromStr};
 
 static NODE: &str = "https://bscrpc.com"; // Main net: ChainID: 56_u64
 static CHAIN_ID: u64 = 56;
@@ -72,7 +68,7 @@ async fn main() -> Result<()> {
     );
 
     // Transfer
-    let transfer = token_contract
+    let transfer_tx = token_contract
         .method::<_, bool>(
             "transfer",
             (
@@ -81,12 +77,11 @@ async fn main() -> Result<()> {
             )
                 .to_owned(),
         )?
-        .gas(to_wei(300000.0, 0))
+        .gas(to_wei(0.3, 6))
         .gas_price(to_wei(15.0, 9))
         .legacy();
 
-    pause();
-    let receipt = transfer.send().await?.await?.unwrap();
+    let receipt = transfer_tx.send().await?.await?.unwrap();
     println!("Tx Hash: {}", receipt.transaction_hash);
 
     Ok(())
@@ -117,16 +112,4 @@ fn from_wei(amount: U256, decimals: u8) -> f64 {
 
 fn to_wei(amount: f64, decimals: u8) -> U256 {
     U256::from_dec_str(&(amount * 10_f64.powf(decimals as f64)).to_string()).unwrap()
-}
-
-fn pause() {
-    let mut stdin = io::stdin();
-    let mut stdout = io::stdout();
-
-    // We want the cursor to stay at the end of the line, so we print without a newline and flush manually.
-    write!(stdout, "Press 'Enter' key to continue...").unwrap();
-    stdout.flush().unwrap();
-
-    // Read a single byte and discard
-    let _ = stdin.read(&mut [0u8]).unwrap();
 }
