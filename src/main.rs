@@ -16,7 +16,6 @@ static NODE: &str = "https://data-seed-prebsc-1-s1.binance.org:8545/"; // Test n
 static CHAIN_ID: u64 = 97;
 
 static PRIVATE_KEY: &str = "039d17fedb3da5634bc09a7242c8be5d25f74eb3bdd7287ef8dc9e7e5defc0ec";
-// static PUBLICKEY: &str = "0x3e7d4b0c74a1a2dea39e6265edf9d2097272d1c4";
 
 #[tokio::main]
 async fn main() -> Result<()> {
@@ -34,7 +33,7 @@ async fn main() -> Result<()> {
     let eth_balance_wei = client.get_balance(client.address(), None).await?;
     let eth_balance = from_wei(eth_balance_wei, 18);
     println!(
-        "Address: {}\nBalance Wei: {}\nFrom Wei: {}\nNonce: {}",
+        "Address: {:#x}\nBalance Wei: {}\nFrom Wei: {}\nNonce: {}",
         client.address(),
         eth_balance_wei,
         eth_balance,
@@ -83,7 +82,7 @@ async fn main() -> Result<()> {
         .legacy();
 
     let receipt = transfer_tx.send().await?.await?.unwrap();
-    println!("Tx Hash: {}", receipt.transaction_hash);
+    println!("Tx Hash: {:#x}", receipt.transaction_hash);
 
     Ok(())
 }
