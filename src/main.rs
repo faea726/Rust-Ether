@@ -10,12 +10,13 @@ use eyre::Result;
 use serde_json;
 use std::{fs::File, str::FromStr};
 
-static NODE: &str = "https://bscrpc.com"; // Main net: ChainID: 56_u64
-static CHAIN_ID: u64 = 56;
-// static NODE: &str = "https://data-seed-prebsc-1-s1.binance.org:8545/"; // Test net: ChainID: 97_u64
-// static CHAIN_ID: u64 = 97;
+// static NODE: &str = "https://bscrpc.com"; // Main net: ChainID: 56_u64
+// static CHAIN_ID: u64 = 56;
+static NODE: &str = "https://data-seed-prebsc-1-s1.binance.org:8545/"; // Test net: ChainID: 97_u64
+static CHAIN_ID: u64 = 97;
 
 static PRIVATE_KEY: &str = "039d17fedb3da5634bc09a7242c8be5d25f74eb3bdd7287ef8dc9e7e5defc0ec";
+// static PUBLICKEY: &str = "0x3e7d4b0c74a1a2dea39e6265edf9d2097272d1c4";
 
 #[tokio::main]
 async fn main() -> Result<()> {
@@ -42,7 +43,7 @@ async fn main() -> Result<()> {
 
     // Call
     let token_contract = create_contract(
-        "0x8076c74c5e3f5852037f31ff0093eeb8c8add8d3",
+        "0xae13d989daC2f0dEbFf460aC112a837C89BAa7cd",
         "./abis/ERC20-abi.json",
         client.clone(),
     );
@@ -72,8 +73,8 @@ async fn main() -> Result<()> {
         .method::<_, bool>(
             "transfer",
             (
-                Token::Address(token_contract.address()),
-                Token::Uint(to_wei(100_f64, token_decimals)),
+                Token::Address(client.address()),
+                Token::Uint(to_wei(0.001, token_decimals)),
             )
                 .to_owned(),
         )?
