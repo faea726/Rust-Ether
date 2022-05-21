@@ -102,7 +102,7 @@ async fn query_tx(
 ) -> Result<(), eyre::Error> {
     let txhash: H256 = tx_hash.parse()?;
     let recpt = client.get_transaction_receipt(txhash).await?.unwrap();
-    println!("{}", serde_json::to_string(&recpt)?);
+    println!("{}", serde_json::to_string_pretty(&recpt)?);
     Ok(())
 }
 
