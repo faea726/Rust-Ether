@@ -1,9 +1,11 @@
+// #![allow(dead_code, unused_imports)] // For debug
+
 use ethers::{
     abi::{Abi, Token},
     contract::Contract,
     prelude::{
         k256::ecdsa::SigningKey, Address, BlockNumber, Middleware, Provider, Signer,
-        SignerMiddleware, Wallet, U256,
+        SignerMiddleware, Wallet, H256, U256,
     },
 };
 use eyre::Result;
@@ -81,9 +83,26 @@ async fn main() -> Result<()> {
         .gas_price(to_wei(15.0, 9))
         .legacy();
 
-    let receipt = transfer_tx.send().await?.await?.unwrap();
+    let receipt = transfer_tx.send().await?.await?.unwrap(); // Send transaction
     println!("Tx Hash: {:#x}", receipt.transaction_hash);
 
+    // Get txhash infor
+    query_tx(
+        client,
+        "0x47a404880356c22c33fd05e1caa16b26d6f0d67425db99fd31e596123166c5af",
+    )
+    .await?;
+
+    Ok(())
+}
+
+async fn query_tx(
+    client: SignerMiddleware<Provider<ethers::prelude::Http>, Wallet<SigningKey>>,
+    tx_hash: &str,
+) -> Result<(), eyre::Error> {
+    let txhash: H256 = tx_hash.parse()?;
+    let recpt = client.get_transaction_receipt(txhash).await?.unwrap();
+    println!("{}", serde_json::to_string(&recpt)?);
     Ok(())
 }
 
