@@ -8,7 +8,7 @@ use ethers::{
 };
 use eyre::Result;
 use serde_json;
-use std::{fs::File, str::FromStr};
+use std::fs::File;
 
 // static NODE: &str = "https://bscrpc.com"; // Main net: ChainID: 56_u64
 // static CHAIN_ID: u64 = 56;
@@ -42,7 +42,7 @@ async fn main() -> Result<()> {
 
     // Call
     let token_contract = create_contract(
-        "0xae13d989daC2f0dEbFf460aC112a837C89BAa7cd",
+        "0xae13d989daC2f0dEbFf460aC112a837C89BAa7cd".parse()?,
         "./abis/ERC20-abi.json",
         client.clone(),
     );
@@ -96,12 +96,10 @@ async fn main() -> Result<()> {
 
 // Create sign_able contract with provider
 fn create_contract(
-    contract_address: &str,
+    contract_address: Address,
     abi_path: &str,
     contract_provider: SignerMiddleware<Provider<ethers::prelude::Http>, Wallet<SigningKey>>,
 ) -> Contract<SignerMiddleware<Provider<ethers::prelude::Http>, Wallet<SigningKey>>> {
-    let contract_address = Address::from_str(contract_address).expect("Not Address");
-
     let file = File::open(abi_path).expect("No JSON file");
     let contract_abi: Abi = serde_json::from_reader(file).expect("Wrong JSON format");
 
