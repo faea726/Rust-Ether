@@ -10,19 +10,22 @@ use eyre::Result;
 use serde_json;
 use std::fs::File;
 
-// static NODE: &str = "https://bscrpc.com"; // Main net: ChainID: 56_u64
-// static CHAIN_ID: u64 = 56;
-static NODE: &str = "https://data-seed-prebsc-1-s1.binance.org:8545/"; // Test net: ChainID: 97_u64
-static CHAIN_ID: u64 = 97;
-
-static PRIVATE_KEY: &str = "039d17fedb3da5634bc09a7242c8be5d25f74eb3bdd7287ef8dc9e7e5defc0ec";
+extern crate ini;
+use ini::Ini;
 
 #[tokio::main]
 async fn main() -> Result<()> {
-    let provider = create_provider(NODE);
+    let conf = Ini::load_from_file("conf.ini").unwrap();
+    let section = conf.section(Some("test")).unwrap();
 
-    let wallet: Wallet<SigningKey> = PRIVATE_KEY.parse()?;
-    let wallet = wallet.with_chain_id(CHAIN_ID);
+    let private_key = section.get("PRIVATE_KEY").unwrap();
+    let chain_id = section.get("CHAIN_ID").unwrap().parse::<u64>().unwrap();
+    let node = section.get("NODE").unwrap();
+
+    let provider = create_provider(node);
+
+    let wallet: Wallet<SigningKey> = private_key.parse()?;
+    let wallet = wallet.with_chain_id(chain_id);
 
     let client = SignerMiddleware::new(provider, wallet);
 

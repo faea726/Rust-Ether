@@ -16,3 +16,6 @@ eyre = "0.6.8"
 
 # Read JSON data
 serde_json = "1.0.79"
+
+# Read ini
+rust-ini = "0.18"
