@@ -5,6 +5,7 @@ use ethers::{
         k256::ecdsa::SigningKey, Address, BlockNumber, Middleware, Provider, Signer,
         SignerMiddleware, Wallet, U256,
     },
+    types::TransactionReceipt,
 };
 use eyre::Result;
 use serde_json;
@@ -87,14 +88,24 @@ async fn main() -> Result<()> {
     let receipt = transfer_tx.send().await?.await?.unwrap(); // Send transaction
     println!("Tx Hash: {:#x}", receipt.transaction_hash);
 
-    let tx_infor = client
-        .get_transaction_receipt(receipt.transaction_hash)
-        .await?
-        .unwrap();
-
-    println!("\n{}", serde_json::to_string_pretty(&tx_infor)?);
+    // get_tx_infor(client.clone(), receipt).await;
 
     Ok(())
+}
+
+async fn get_tx_infor(
+    client: SignerMiddleware<Provider<ethers::prelude::Http>, Wallet<SigningKey>>,
+    receipt: TransactionReceipt,
+) {
+    let tx_infor = client
+        .get_transaction_receipt(receipt.transaction_hash)
+        .await
+        .unwrap();
+
+    println!(
+        "\n{}",
+        serde_json::to_string_pretty(&tx_infor).expect("error: no data")
+    );
 }
 
 // Create sign_able contract with provider
