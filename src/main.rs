@@ -93,6 +93,7 @@ async fn main() -> Result<()> {
     Ok(())
 }
 
+#[allow(dead_code)]
 async fn get_tx_infor(
     client: SignerMiddleware<Provider<ethers::prelude::Http>, Wallet<SigningKey>>,
     receipt: TransactionReceipt,
